@@ -38,11 +38,11 @@ def addPlaylist(sp):
 
     playlists = sp.current_user_playlists()    
     user_id = sp.me()['id']                       
-    print(sp.me()['display_name'])    
     print()
+    print('Your playlists:')
     for playlist in playlists['items']:    
         if playlist['owner']['id'] == user_id:                                                                                          
-            print(playlist['name'], ':', playlist['tracks']['total'])
+            print(playlist['name'], ':', playlist['tracks']['total'], 'tracks')
     print()
 
     while True:
@@ -76,7 +76,8 @@ def addPlaylist(sp):
 
 
 def main():
-    print(f"Welcome {sp.me()['display_name']}. What would you like to do?")
+    print("SPOTIFY-ORGANIZER\n")
+    print(f"Welcome {sp.me()['display_name']}. What would you like to do?\n")
 
     while True:
         choice = input('''1. Add a playlist to another playlist
