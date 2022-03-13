@@ -1,4 +1,4 @@
-import spotipy, os, sys, json, spotipy, webbrowser
+import spotipy, os, sys, json, spotipy
 import spotipy.util as util
 from json.decoder import JSONDecodeError
 from spotipy.oauth2 import SpotifyOAuth
@@ -19,7 +19,7 @@ except:
     token = util.prompt_for_user_token(config["username"])
 
 
-sp=spotipy.Spotify(auth_manager=SpotifyOAuth(scope="playlist-modify-private"))
+sp=spotipy.Spotify(auth_manager=SpotifyOAuth(scope="playlist-modify-private playlist-modify-public playlist-read-private"))
 
 
 def checkPlaylist(sp, playlist):
@@ -31,9 +31,7 @@ def checkPlaylist(sp, playlist):
     return False
 
 
-##########################################################################################
 #Take all songs from one playlist and add it to another playlist, alphabetically by artist
-##########################################################################################
 def addPlaylist(sp):
 
     playlists = sp.current_user_playlists()    
@@ -70,13 +68,28 @@ def addPlaylist(sp):
             target = sp.playlist(playlist["id"])
             break
 
-    for track in source['tracks']['items']:
-        sp.playlist_add_items(playlist_id=target['id'], items=[track['track']['id']])
-        print(f"{track['track']['name']} was added to {target['name']}")
+    for track in reversed(source['tracks']['items']):
+        counter = 0
+        added = False
+        while True:
+            print(json.dumps(target, sort_keys=True, indent=4))
+            for track2 in target['tracks']['items']:
+                artists = [track['track']['artists'][0]['name'], track2['track']['artists'][0]['name']]
+                artists.sort()
+                if artists[0] == track['track']['artists'][0]['name']:
+                    sp.playlist_add_items(playlist_id=target['id'], items=[track['track']['id']], position=counter)
+                    print(f"{track['track']['name']} was added to {target['name']}")
+                    added = True
+                    break
+                counter += 1
+            if added:
+                break
+            else:
+                sp.playlist_add_items(playlist_id=target['id'], items=[track['track']['id']], position=counter)
+                print(f"{track['track']['name']} was added to {target['name']}")
 
 
 def main():
-    print("SPOTIFY-ORGANIZER\n")
     print(f"Welcome {sp.me()['display_name']}. What would you like to do?\n")
 
     while True:
