@@ -30,6 +30,14 @@ def checkPlaylist(sp, playlist):
             return True
     return False
 
+def getPlaylistTracks(username, playlist_id):
+    results = sp.user_playlist_tracks(username,playlist_id)
+    tracks = results['items']
+    while results['next']:
+        results = sp.next(results)
+        tracks.extend(results['items'])
+    return tracks
+
 
 #Take all songs from one playlist and add it to another playlist, alphabetically by artist
 def addPlaylist(sp):
@@ -89,15 +97,50 @@ def addPlaylist(sp):
                 print(f"{track['track']['name']} was added to {target['name']}")
 
 
+#Get artist and song name and output to file
+def getSongInfo(sp):
+    playlists = sp.current_user_playlists()    
+    user_id = sp.me()['id']                       
+    print()
+    print('Your playlists:')
+    for playlist in playlists['items']:    
+        if playlist['owner']['id'] == user_id:                                                                                          
+            print(playlist['name'], ':', playlist['tracks']['total'], 'tracks')
+    print()
+
+    while True:
+        source = input('What playlist would you like to take from?\n')
+        if checkPlaylist(sp, source):
+            break
+        else:
+            print("That playlist does not exist. Please check your spelling.")
+    output = input('What file would you like to output to?\n')
+
+    with open(output, 'a') as f:
+        offset = 0
+        for playlist in playlists['items']:
+            if playlist['name'] == source:
+                source = getPlaylistTracks(user_id, playlist['id'])
+                break
+        for track in source:
+            w = track['track']['artists'][0]['name'] + ' - ' + track['track']['name']
+            print(w)
+            f.write(w + '\n')
+
+
 def main():
     print(f"Welcome {sp.me()['display_name']}. What would you like to do?\n")
 
     while True:
         choice = input('''1. Add a playlist to another playlist
+2. Get song names and artists from a playlist
 ''')
 
         if int(choice) == 1:
             addPlaylist(sp)
+            break
+        elif int(choice) == 2:
+            getSongInfo(sp)
             break
         else:
             print("Invalid input. What would you like to do?")
